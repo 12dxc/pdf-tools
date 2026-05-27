@@ -1,0 +1,40 @@
+# Build
+build/
+CMakeUserPresets.json
+CMakeFiles/
+cmake-build-*/
+*.cmake
+compile_commands.json
+
+# Qt generated
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+*.moc
+
+# Object / library
+*.o
+*.obj
+*.lib
+*.dll
+*.exe
+*.pdb
+*.ilk
+*.exp
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.user
+*.user.*
+*.pro.user*
+QtCreator-*.db
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

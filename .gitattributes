@@ -1,0 +1,10 @@
+* text=auto
+*.cpp text
+*.h text
+*.cmake text
+*.qrc text
+*.svg text
+.gitignore text
+*.md text
+*.txt text
+*.json text
