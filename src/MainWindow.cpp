@@ -27,7 +27,10 @@
 #include <QApplication>
 #include <QAction>
 #include <QStyle>
+#include <QStyleFactory>
+#include <QPalette>
 #include <QFileInfo>
+#include <QInputDialog>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -113,6 +116,13 @@ void MainWindow::createMenuBar()
 
     // View menu
     auto *viewMenu = menuBar()->addMenu(tr("&View"));
+
+    auto *gotoAction = viewMenu->addAction(tr("&Go to Page..."));
+    gotoAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_G));
+    connect(gotoAction, &QAction::triggered, this, &MainWindow::goToPage);
+
+    viewMenu->addSeparator();
+
     auto *zoomInAction = viewMenu->addAction(tr("Zoom &In"));
     zoomInAction->setShortcut(QKeySequence::ZoomIn);
     connect(zoomInAction, &QAction::triggered, this, [this] {
@@ -151,6 +161,19 @@ void MainWindow::createMenuBar()
             actions[1]->trigger();
         }
     });
+
+    viewMenu->addSeparator();
+
+    auto *toggleTocAction = viewMenu->addAction(tr("Toggle &Side Panel"));
+    toggleTocAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_T));
+    connect(toggleTocAction, &QAction::triggered, this, [this] {
+        m_sideDock->setVisible(!m_sideDock->isVisible());
+    });
+
+    auto *darkThemeAction = viewMenu->addAction(tr("&Dark Theme"));
+    darkThemeAction->setCheckable(true);
+    darkThemeAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_D));
+    connect(darkThemeAction, &QAction::triggered, this, &MainWindow::toggleDarkTheme);
 
     // Help menu
     auto *helpMenu = menuBar()->addMenu(tr("&Help"));
@@ -417,6 +440,48 @@ void MainWindow::printDocument()
 
     painter.end();
     statusBar()->showMessage(tr("Print complete."), 3000);
+}
+
+void MainWindow::goToPage()
+{
+    if (m_view->pageCount() == 0) {
+        QMessageBox::information(this, tr("Go to Page"), tr("No document open."));
+        return;
+    }
+    bool ok = false;
+    int page = QInputDialog::getInt(this, tr("Go to Page"),
+        tr("Page number (1 - %1):").arg(m_view->pageCount()),
+        m_view->currentPage() + 1, 1, m_view->pageCount(), 1, &ok);
+    if (ok)
+        m_view->goToPage(page - 1);
+}
+
+void MainWindow::toggleDarkTheme()
+{
+    m_darkTheme = !m_darkTheme;
+    if (m_darkTheme) {
+        QApplication::setStyle(QStyleFactory::create("Fusion"));
+        QPalette p;
+        p.setColor(QPalette::Window, QColor(53, 53, 53));
+        p.setColor(QPalette::WindowText, Qt::white);
+        p.setColor(QPalette::Base, QColor(35, 35, 35));
+        p.setColor(QPalette::AlternateBase, QColor(53, 53, 53));
+        p.setColor(QPalette::ToolTipBase, QColor(25, 25, 25));
+        p.setColor(QPalette::ToolTipText, Qt::white);
+        p.setColor(QPalette::Text, Qt::white);
+        p.setColor(QPalette::Button, QColor(53, 53, 53));
+        p.setColor(QPalette::ButtonText, Qt::white);
+        p.setColor(QPalette::BrightText, Qt::red);
+        p.setColor(QPalette::Link, QColor(42, 130, 218));
+        p.setColor(QPalette::Highlight, QColor(42, 130, 218));
+        p.setColor(QPalette::HighlightedText, Qt::black);
+        p.setColor(QPalette::Disabled, QPalette::Text, QColor(127, 127, 127));
+        p.setColor(QPalette::Disabled, QPalette::ButtonText, QColor(127, 127, 127));
+        QApplication::setPalette(p);
+    } else {
+        QApplication::setStyle(QStyleFactory::create("windows"));
+        QApplication::setPalette(QApplication::style()->standardPalette());
+    }
 }
 
 void MainWindow::about()

@@ -37,7 +37,9 @@ private:
     void openFile();
     void openRecentFile();
     void updateRecentFiles();
+    void goToPage();
     void printDocument();
+    void toggleDarkTheme();
     void about();
 
     PdfView *m_view = nullptr;
@@ -58,6 +60,8 @@ private:
     // Toolbar widgets
     QComboBox *m_zoomCombo = nullptr;
 
+    // UI state
+    bool m_darkTheme = false;
     // Current file
     QString m_currentPath;
 
