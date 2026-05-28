@@ -35,6 +35,7 @@ PdfView::PdfView(QWidget *parent)
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
     setBackgroundBrush(QBrush(QColor(0x80, 0x80, 0x80)));
+    setAcceptDrops(true);
 
     connect(m_renderer, &QPdfPageRenderer::pageRendered, this,
             [this](int pageNumber, QSize, const QImage &image,
