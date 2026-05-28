@@ -1,10 +1,12 @@
 #include "MainWindow.h"
 #include "PdfView.h"
 #include "TocWidget.h"
+#include "SearchWidget.h"
 
 #include <QMenuBar>
 #include <QToolBar>
 #include <QStatusBar>
+#include <QVBoxLayout>
 #include <QLabel>
 #include <QComboBox>
 #include <QSplitter>
@@ -117,6 +119,18 @@ void MainWindow::createMenuBar()
     auto *fitPageAction = viewMenu->addAction(tr("Fit &Page"));
     connect(fitPageAction, &QAction::triggered, m_view, &PdfView::fitToPage);
 
+    viewMenu->addSeparator();
+
+    auto *searchAction = viewMenu->addAction(tr("&Search..."));
+    searchAction->setShortcut(QKeySequence::Find);
+    connect(searchAction, &QAction::triggered, this, [this] {
+        m_sideDock->show();
+        auto actions = m_sideToolBar->actions();
+        if (actions.size() >= 2) {
+            actions[1]->trigger();
+        }
+    });
+
     // Help menu
     auto *helpMenu = menuBar()->addMenu(tr("&Help"));
     auto *aboutAction = helpMenu->addAction(tr("&About pdf-tools"));
@@ -178,13 +192,49 @@ void MainWindow::createSidePanel()
     m_sideDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetClosable);
     m_sideDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 
+    auto *sideContainer = new QWidget;
+    auto *sideLayout = new QVBoxLayout(sideContainer);
+    sideLayout->setContentsMargins(0, 0, 0, 0);
+    sideLayout->setSpacing(0);
+
+    m_sideToolBar = new QToolBar;
+    m_sideToolBar->setIconSize(QSize(16, 16));
+    m_sideToolBar->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    sideLayout->addWidget(m_sideToolBar);
+
     m_sideStack = new QStackedWidget;
 
     m_tocWidget = new TocWidget;
     m_sideStack->addWidget(m_tocWidget);
 
-    m_sideDock->setWidget(m_sideStack);
+    m_searchWidget = new SearchWidget;
+    m_sideStack->addWidget(m_searchWidget);
+
+    sideLayout->addWidget(m_sideStack, 1);
+    m_sideDock->setWidget(sideContainer);
     addDockWidget(Qt::LeftDockWidgetArea, m_sideDock);
+
+    auto *tocAction = m_sideToolBar->addAction(tr("TOC"));
+    tocAction->setCheckable(true);
+    tocAction->setChecked(true);
+
+    auto *searchAction = m_sideToolBar->addAction(tr("Search"));
+    searchAction->setCheckable(true);
+
+    connect(tocAction, &QAction::triggered, this, [this] {
+        m_sideStack->setCurrentIndex(0);
+        auto actions = m_sideToolBar->actions();
+        actions[0]->setChecked(true);
+        actions[1]->setChecked(false);
+    });
+
+    connect(searchAction, &QAction::triggered, this, [this] {
+        m_sideStack->setCurrentIndex(1);
+        auto actions = m_sideToolBar->actions();
+        actions[0]->setChecked(false);
+        actions[1]->setChecked(true);
+        m_searchWidget->focusSearch();
+    });
 }
 
 void MainWindow::setupConnections()
@@ -212,6 +262,7 @@ void MainWindow::setupConnections()
         setWindowTitle(tr("pdf-tools - %1").arg(QFileInfo(path).fileName()));
 
         m_tocWidget->setDocument(m_view->document());
+        m_searchWidget->setDocument(m_view->document());
         m_sideDock->show();
 
         QSettings settings;
@@ -229,10 +280,12 @@ void MainWindow::setupConnections()
         setWindowTitle("pdf-tools");
         m_pageLabel->setText(tr("Page 1 / 1"));
         m_tocWidget->setDocument(nullptr);
+        m_searchWidget->setDocument(nullptr);
         m_sideDock->hide();
     });
 
     connect(m_tocWidget, &TocWidget::pageRequested, m_view, &PdfView::goToPage);
+    connect(m_searchWidget, &SearchWidget::pageRequested, m_view, &PdfView::goToPage);
 }
 
 void MainWindow::openFile()

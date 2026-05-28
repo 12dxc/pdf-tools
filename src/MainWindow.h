@@ -8,8 +8,10 @@ class QComboBox;
 class QSplitter;
 class QDockWidget;
 class QStackedWidget;
+class QToolBar;
 class PdfView;
 class TocWidget;
+class SearchWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -42,7 +44,9 @@ private:
     // Side panel
     QDockWidget *m_sideDock = nullptr;
     QStackedWidget *m_sideStack = nullptr;
+    QToolBar *m_sideToolBar = nullptr;
     TocWidget *m_tocWidget = nullptr;
+    SearchWidget *m_searchWidget = nullptr;
 
     // Status bar widgets
     QLabel *m_pageLabel = nullptr;

@@ -24,6 +24,8 @@ add_executable(${PROJECT_NAME}
     src/PdfView.h
     src/TocWidget.cpp
     src/TocWidget.h
+    src/SearchWidget.cpp
+    src/SearchWidget.h
     resources/resources.qrc
 )
 
