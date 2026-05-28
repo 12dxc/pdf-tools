@@ -35,7 +35,10 @@ PdfView::PdfView(QWidget *parent)
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
     setBackgroundBrush(QBrush(QColor(0x80, 0x80, 0x80)));
+    setFocusPolicy(Qt::StrongFocus);
     setAcceptDrops(true);
+    viewport()->setAcceptDrops(true);
+    viewport()->installEventFilter(this);
 
     connect(m_renderer, &QPdfPageRenderer::pageRendered, this,
             [this](int pageNumber, QSize, const QImage &image,
@@ -238,26 +241,32 @@ void PdfView::keyPressEvent(QKeyEvent *event)
     }
 }
 
-void PdfView::dragEnterEvent(QDragEnterEvent *event)
+bool PdfView::eventFilter(QObject *obj, QEvent *event)
 {
-    if (event->mimeData()->hasUrls()) {
-        for (const auto &url : event->mimeData()->urls()) {
-            if (url.toLocalFile().endsWith(".pdf", Qt::CaseInsensitive)) {
-                event->acceptProposedAction();
-                return;
+    if (obj == viewport()) {
+        if (event->type() == QEvent::DragEnter) {
+            auto *de = static_cast<QDragEnterEvent *>(event);
+            if (de->mimeData()->hasUrls()) {
+                for (const auto &url : de->mimeData()->urls()) {
+                    if (url.toLocalFile().endsWith(".pdf", Qt::CaseInsensitive)) {
+                        de->acceptProposedAction();
+                        return true;
+                    }
+                }
             }
+            return false;
+        }
+        if (event->type() == QEvent::Drop) {
+            auto *de = static_cast<QDropEvent *>(event);
+            for (const auto &url : de->mimeData()->urls()) {
+                QString path = url.toLocalFile();
+                if (path.endsWith(".pdf", Qt::CaseInsensitive)) {
+                    loadFile(path);
+                    return true;
+                }
+            }
+            return false;
         }
     }
-    event->ignore();
-}
-
-void PdfView::dropEvent(QDropEvent *event)
-{
-    for (const auto &url : event->mimeData()->urls()) {
-        QString path = url.toLocalFile();
-        if (path.endsWith(".pdf", Qt::CaseInsensitive)) {
-            loadFile(path);
-            break;
-        }
-    }
+    return QGraphicsView::eventFilter(obj, event);
 }
