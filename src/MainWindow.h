@@ -37,6 +37,7 @@ private:
     void openFile();
     void openRecentFile();
     void updateRecentFiles();
+    void printDocument();
     void about();
 
     PdfView *m_view = nullptr;

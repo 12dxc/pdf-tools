@@ -4,6 +4,7 @@
 #include "SearchWidget.h"
 #include "BookmarkWidget.h"
 
+#include <QPdfDocument>
 #include <QMenuBar>
 #include <QToolBar>
 #include <QStatusBar>
@@ -15,6 +16,9 @@
 #include <QStackedWidget>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QPrinter>
+#include <QPrintDialog>
+#include <QPainter>
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QMimeData>
@@ -89,6 +93,13 @@ void MainWindow::createMenuBar()
         action->setVisible(false);
         connect(action, &QAction::triggered, this, &MainWindow::openRecentFile);
     }
+
+    fileMenu->addSeparator();
+
+    auto *printAction = fileMenu->addAction(tr("&Print..."));
+    printAction->setShortcut(QKeySequence::Print);
+    printAction->setIcon(style()->standardIcon(QStyle::SP_FileIcon));
+    connect(printAction, &QAction::triggered, this, &MainWindow::printDocument);
 
     fileMenu->addSeparator();
 
@@ -361,6 +372,51 @@ void MainWindow::updateRecentFiles()
             actions[i + 1]->setVisible(false);
         }
     }
+}
+
+void MainWindow::printDocument()
+{
+    if (m_view->pageCount() == 0) {
+        QMessageBox::information(this, tr("Print"), tr("No document open."));
+        return;
+    }
+
+    QPrinter printer(QPrinter::HighResolution);
+    QPrintDialog dialog(&printer, this);
+    dialog.setWindowTitle(tr("Print Document"));
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+
+    statusBar()->showMessage(tr("Printing..."));
+
+    QPainter painter;
+    if (!painter.begin(&printer)) {
+        statusBar()->clearMessage();
+        return;
+    }
+
+    QPdfDocument *doc = m_view->document();
+    int totalPages = m_view->pageCount();
+    QSize pageSize = doc->pagePointSize(0).toSize();
+    qreal scale = printer.logicalDpiX() * 1.0 / 72.0;
+
+    for (int i = 0; i < totalPages; ++i) {
+        if (i > 0)
+            printer.newPage();
+
+        QImage image = doc->render(i,
+            QSize(qRound(pageSize.width() * scale),
+                  qRound(pageSize.height() * scale)));
+
+        QRectF targetRect = painter.viewport();
+        QRectF sourceRect(0, 0, image.width(), image.height());
+        painter.drawImage(targetRect, image, sourceRect);
+
+        statusBar()->showMessage(tr("Printing page %1 / %2").arg(i + 1).arg(totalPages));
+    }
+
+    painter.end();
+    statusBar()->showMessage(tr("Print complete."), 3000);
 }
 
 void MainWindow::about()
