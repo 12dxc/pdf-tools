@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "PdfView.h"
+#include "TocWidget.h"
 
 #include <QMenuBar>
 #include <QToolBar>
@@ -7,6 +8,8 @@
 #include <QLabel>
 #include <QComboBox>
 #include <QSplitter>
+#include <QDockWidget>
+#include <QStackedWidget>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QDragEnterEvent>
@@ -28,6 +31,7 @@ MainWindow::MainWindow(QWidget *parent)
     createMenuBar();
     createToolBar();
     createStatusBar();
+    createSidePanel();
     createCentralWidget();
     setupConnections();
 }
@@ -164,10 +168,23 @@ void MainWindow::createStatusBar()
 
 void MainWindow::createCentralWidget()
 {
-    m_splitter = new QSplitter(Qt::Horizontal, this);
-    m_view = new PdfView(m_splitter);
-    m_splitter->addWidget(m_view);
-    setCentralWidget(m_splitter);
+    m_view = new PdfView(this);
+    setCentralWidget(m_view);
+}
+
+void MainWindow::createSidePanel()
+{
+    m_sideDock = new QDockWidget(tr("Navigation"), this);
+    m_sideDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetClosable);
+    m_sideDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+
+    m_sideStack = new QStackedWidget;
+
+    m_tocWidget = new TocWidget;
+    m_sideStack->addWidget(m_tocWidget);
+
+    m_sideDock->setWidget(m_sideStack);
+    addDockWidget(Qt::LeftDockWidgetArea, m_sideDock);
 }
 
 void MainWindow::setupConnections()
@@ -194,6 +211,9 @@ void MainWindow::setupConnections()
     connect(m_view, &PdfView::documentLoaded, this, [this](const QString &path) {
         setWindowTitle(tr("pdf-tools - %1").arg(QFileInfo(path).fileName()));
 
+        m_tocWidget->setDocument(m_view->document());
+        m_sideDock->show();
+
         QSettings settings;
         QStringList files = settings.value("recent/files").toStringList();
         files.removeAll(path);
@@ -208,7 +228,11 @@ void MainWindow::setupConnections()
     connect(m_view, &PdfView::documentClosed, this, [this] {
         setWindowTitle("pdf-tools");
         m_pageLabel->setText(tr("Page 1 / 1"));
+        m_tocWidget->setDocument(nullptr);
+        m_sideDock->hide();
     });
+
+    connect(m_tocWidget, &TocWidget::pageRequested, m_view, &PdfView::goToPage);
 }
 
 void MainWindow::openFile()

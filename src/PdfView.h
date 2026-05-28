@@ -18,6 +18,7 @@ public:
     void loadFile(const QString &path);
     void closeDocument();
 
+    QPdfDocument *document() const { return m_document; }
     int currentPage() const { return m_page; }
     int pageCount() const { return m_pageCount; }
     double zoomFactor() const { return m_zoom; }

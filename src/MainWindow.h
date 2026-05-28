@@ -6,7 +6,10 @@
 class QLabel;
 class QComboBox;
 class QSplitter;
+class QDockWidget;
+class QStackedWidget;
 class PdfView;
+class TocWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -25,6 +28,7 @@ private:
     void createToolBar();
     void createStatusBar();
     void createCentralWidget();
+    void createSidePanel();
     void setupConnections();
 
     void openFile();
@@ -34,6 +38,11 @@ private:
 
     PdfView *m_view = nullptr;
     QSplitter *m_splitter = nullptr;
+
+    // Side panel
+    QDockWidget *m_sideDock = nullptr;
+    QStackedWidget *m_sideStack = nullptr;
+    TocWidget *m_tocWidget = nullptr;
 
     // Status bar widgets
     QLabel *m_pageLabel = nullptr;
