@@ -7,6 +7,11 @@ class QTreeView;
 class QPdfBookmarkModel;
 class QPdfDocument;
 
+/**
+ * @brief 目录导航面板
+ *
+ * 显示 PDF 文档的书签目录树，点击条目可跳转到对应页面。
+ */
 class TocWidget : public QWidget
 {
     Q_OBJECT

@@ -35,9 +35,6 @@ PdfView::PdfView(QWidget *parent)
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
     setBackgroundBrush(QBrush(QColor(0x80, 0x80, 0x80)));
-    setFocusPolicy(Qt::StrongFocus);
-    setAcceptDrops(true);
-    viewport()->setAcceptDrops(true);
 
     connect(m_renderer, &QPdfPageRenderer::pageRendered, this,
             [this](int pageNumber, QSize, const QImage &image,
@@ -55,7 +52,7 @@ void PdfView::loadFile(const QString &path)
 {
     auto err = m_document->load(path);
     if (err != QPdfDocument::Error::None) {
-        emit documentClosed();
+        closeDocument();
         return;
     }
     m_pageCount = m_document->pageCount();
@@ -99,7 +96,7 @@ void PdfView::goToPage(int page)
 
 void PdfView::setZoom(double percent)
 {
-    m_zoom = qBound(25.0, percent, 500.0);
+    m_zoom = qBound(25.0, percent, 500.0);  // 限制缩放范围 25%-500%
     QGraphicsView::resetTransform();
     qreal scale = m_zoom / 100.0;
     QGraphicsView::scale(scale, scale);
@@ -111,7 +108,7 @@ void PdfView::fitToWidth()
     if (!m_pageItem || m_pageItem->pixmap().isNull())
         return;
     fitInView(m_pageItem, Qt::IgnoreAspectRatio);
-    m_zoom = transform().m11() * 100.0;
+    m_zoom = qBound(25.0, transform().m11() * 100.0, 500.0);
     emit zoomChanged(m_zoom);
 }
 
@@ -120,7 +117,7 @@ void PdfView::fitToPage()
     if (!m_pageItem || m_pageItem->pixmap().isNull())
         return;
     fitInView(m_pageItem, Qt::KeepAspectRatio);
-    m_zoom = transform().m11() * 100.0;
+    m_zoom = qBound(25.0, transform().m11() * 100.0, 500.0);
     emit zoomChanged(m_zoom);
 }
 
@@ -128,6 +125,7 @@ void PdfView::renderCurrentPage()
 {
     if (m_pageCount == 0)
         return;
+    // 使用页面原始尺寸渲染，保持清晰度
     QSize pageSize = m_document->pagePointSize(m_page).toSize();
     m_renderer->requestPage(m_page, pageSize);
 }
@@ -177,6 +175,10 @@ void PdfView::mouseReleaseEvent(QMouseEvent *event)
 {
     if (m_selecting && event->button() == Qt::LeftButton) {
         m_selecting = false;
+
+        if (m_pageCount == 0)
+            return;
+
         m_selectEnd = mapToScene(event->pos());
 
         QPointF topLeft(qMin(m_selectStart.x(), m_selectEnd.x()),
@@ -200,10 +202,8 @@ void PdfView::wheelEvent(QWheelEvent *event)
 {
     if (event->modifiers() & Qt::ControlModifier) {
         double delta = event->angleDelta().y();
-        double factor = 1.0 + (delta > 0 ? 0.15 : -0.15);
-        QGraphicsView::scale(factor, factor);
-        m_zoom = transform().m11() * 100.0;
-        emit zoomChanged(m_zoom);
+        double step = delta > 0 ? 15.0 : -15.0;
+        setZoom(m_zoom + step);
         event->accept();
     } else {
         QGraphicsView::wheelEvent(event);
@@ -214,13 +214,9 @@ void PdfView::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key()) {
     case Qt::Key_PageDown:
-    case Qt::Key_Down:
-    case Qt::Key_Right:
         goNextPage();
         break;
     case Qt::Key_PageUp:
-    case Qt::Key_Up:
-    case Qt::Key_Left:
         goPrevPage();
         break;
     case Qt::Key_Home:
@@ -250,7 +246,7 @@ void PdfView::dragEnterEvent(QDragEnterEvent *event)
             }
         }
     }
-    QGraphicsView::dragEnterEvent(event);
+    event->ignore();
 }
 
 void PdfView::dropEvent(QDropEvent *event)
@@ -259,9 +255,8 @@ void PdfView::dropEvent(QDropEvent *event)
         QString path = url.toLocalFile();
         if (path.endsWith(".pdf", Qt::CaseInsensitive)) {
             loadFile(path);
-            event->acceptProposedAction();
+            event->accept();
             return;
         }
     }
-    QGraphicsView::dropEvent(event);
 }

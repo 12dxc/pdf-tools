@@ -8,6 +8,15 @@ class QPdfPageRenderer;
 class QGraphicsScene;
 class QGraphicsPixmapItem;
 
+/**
+ * @brief PDF 页面渲染视图
+ *
+ * 基于 QGraphicsView 的 PDF 页面显示组件，支持：
+ * - 页面渲染与异步更新
+ * - 缩放（25%-500%）与滚动
+ * - 文本选择与复制
+ * - 拖放打开文件
+ */
 class PdfView : public QGraphicsView
 {
     Q_OBJECT

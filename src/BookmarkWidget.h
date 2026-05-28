@@ -7,12 +7,18 @@
 class QListWidget;
 class QPushButton;
 
+/** @brief 书签条目 */
 struct BookmarkEntry
 {
-    QString title;
-    int page;
+    QString title;  ///< 书签标题
+    int page;       ///< 页码（0-based）
 };
 
+/**
+ * @brief 书签管理面板
+ *
+ * 支持添加、删除书签，书签按文件路径持久化保存到 QSettings。
+ */
 class BookmarkWidget : public QWidget
 {
     Q_OBJECT

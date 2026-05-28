@@ -45,6 +45,29 @@ MainWindow::MainWindow(QWidget *parent)
     createSidePanel();
     createCentralWidget();
     setupConnections();
+
+    QSettings settings;
+    m_darkTheme = settings.value("appearance/darkTheme", false).toBool();
+    if (m_darkTheme) {
+        QApplication::setStyle(QStyleFactory::create("Fusion"));
+        QPalette p;
+        p.setColor(QPalette::Window, QColor(53, 53, 53));
+        p.setColor(QPalette::WindowText, Qt::white);
+        p.setColor(QPalette::Base, QColor(35, 35, 35));
+        p.setColor(QPalette::AlternateBase, QColor(53, 53, 53));
+        p.setColor(QPalette::ToolTipBase, QColor(25, 25, 25));
+        p.setColor(QPalette::ToolTipText, Qt::white);
+        p.setColor(QPalette::Text, Qt::white);
+        p.setColor(QPalette::Button, QColor(53, 53, 53));
+        p.setColor(QPalette::ButtonText, Qt::white);
+        p.setColor(QPalette::BrightText, Qt::red);
+        p.setColor(QPalette::Link, QColor(42, 130, 218));
+        p.setColor(QPalette::Highlight, QColor(42, 130, 218));
+        p.setColor(QPalette::HighlightedText, Qt::black);
+        p.setColor(QPalette::Disabled, QPalette::Text, QColor(127, 127, 127));
+        p.setColor(QPalette::Disabled, QPalette::ButtonText, QColor(127, 127, 127));
+        QApplication::setPalette(p);
+    }
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -307,10 +330,12 @@ void MainWindow::createSidePanel()
 
 void MainWindow::setupConnections()
 {
+    // 页面变化 → 更新状态栏页码
     connect(m_view, &PdfView::pageChanged, this, [this](int page) {
         m_pageLabel->setText(tr("第 %1 页 / 共 %2 页").arg(page + 1).arg(m_view->pageCount()));
     });
 
+    // 缩放变化 → 更新状态栏和工具栏缩放显示
     connect(m_view, &PdfView::zoomChanged, this, [this](double percent) {
         QString text = QString::number(qRound(percent)) + "%";
         m_zoomLabel->setText(text);
@@ -326,6 +351,7 @@ void MainWindow::setupConnections()
             m_view->setZoom(val);
     });
 
+    // 文档加载 → 更新标题、目录、搜索、书签、最近文件
     connect(m_view, &PdfView::documentLoaded, this, [this](const QString &path) {
         setWindowTitle(tr("pdf-tools - %1").arg(QFileInfo(path).fileName()));
 
@@ -346,6 +372,7 @@ void MainWindow::setupConnections()
         updateRecentFiles();
     });
 
+    // 文档关闭 → 清理状态、隐藏侧边栏
     connect(m_view, &PdfView::documentClosed, this, [this] {
         if (!m_currentPath.isEmpty())
             m_bookmarkWidget->saveBookmarks(m_currentPath);
@@ -421,13 +448,13 @@ void MainWindow::printDocument()
 
     QPdfDocument *doc = m_view->document();
     int totalPages = m_view->pageCount();
-    QSize pageSize = doc->pagePointSize(0).toSize();
     qreal scale = printer.logicalDpiX() * 1.0 / 72.0;
 
     for (int i = 0; i < totalPages; ++i) {
         if (i > 0)
             printer.newPage();
 
+        QSize pageSize = doc->pagePointSize(i).toSize();
         QImage image = doc->render(i,
             QSize(qRound(pageSize.width() * scale),
                   qRound(pageSize.height() * scale)));
@@ -483,6 +510,9 @@ void MainWindow::toggleDarkTheme()
         QApplication::setStyle(QStyleFactory::create("windows"));
         QApplication::setPalette(QApplication::style()->standardPalette());
     }
+
+    QSettings settings;
+    settings.setValue("appearance/darkTheme", m_darkTheme);
 }
 
 void MainWindow::about()

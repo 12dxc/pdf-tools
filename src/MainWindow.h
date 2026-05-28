@@ -14,6 +14,12 @@ class TocWidget;
 class SearchWidget;
 class BookmarkWidget;
 
+/**
+ * @brief 应用程序主窗口
+ *
+ * 管理菜单栏、工具栏、状态栏和侧边面板，
+ * 协调各子组件之间的交互。
+ */
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -43,7 +49,6 @@ private:
     void about();
 
     PdfView *m_view = nullptr;
-    QSplitter *m_splitter = nullptr;
 
     // Side panel
     QDockWidget *m_sideDock = nullptr;
