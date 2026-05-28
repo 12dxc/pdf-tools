@@ -9,3 +9,6 @@
 - `0a25db7` feat: search panel + Chinese README + push log (pushed)
 - `e584204` feat: bookmark management with persistence (pushed)
 - `075261f` feat: text selection and copy (pushed)
+- `dd19d30` docs: update push log (pushed)
+- `fa26fac` feat: print support (pushed)
+- `c3fcbcb` polish: go-to-page, dark theme, more shortcuts (pushed)
