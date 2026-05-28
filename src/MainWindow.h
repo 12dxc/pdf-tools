@@ -12,6 +12,7 @@ class QToolBar;
 class PdfView;
 class TocWidget;
 class SearchWidget;
+class BookmarkWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -47,6 +48,7 @@ private:
     QToolBar *m_sideToolBar = nullptr;
     TocWidget *m_tocWidget = nullptr;
     SearchWidget *m_searchWidget = nullptr;
+    BookmarkWidget *m_bookmarkWidget = nullptr;
 
     // Status bar widgets
     QLabel *m_pageLabel = nullptr;
@@ -54,6 +56,9 @@ private:
 
     // Toolbar widgets
     QComboBox *m_zoomCombo = nullptr;
+
+    // Current file
+    QString m_currentPath;
 
     // Recent files
     QStringList m_recentFiles;

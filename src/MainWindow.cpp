@@ -2,6 +2,7 @@
 #include "PdfView.h"
 #include "TocWidget.h"
 #include "SearchWidget.h"
+#include "BookmarkWidget.h"
 
 #include <QMenuBar>
 #include <QToolBar>
@@ -40,6 +41,8 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    if (!m_currentPath.isEmpty())
+        m_bookmarkWidget->saveBookmarks(m_currentPath);
     QSettings settings;
     settings.setValue("window/geometry", saveGeometry());
     settings.setValue("window/state", saveState());
@@ -159,6 +162,17 @@ void MainWindow::createToolBar()
 
     toolbar->addSeparator();
 
+    auto *bookmarkAction = toolbar->addAction(
+        style()->standardIcon(QStyle::SP_FileDialogDetailedView), tr("Bookmark"));
+    bookmarkAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_B));
+    connect(bookmarkAction, &QAction::triggered, this, [this] {
+        QString title = tr("Page %1").arg(m_view->currentPage() + 1);
+        m_bookmarkWidget->addBookmark(title, m_view->currentPage());
+        m_bookmarkWidget->saveBookmarks(m_currentPath);
+    });
+
+    toolbar->addSeparator();
+
     m_zoomCombo = new QComboBox(this);
     m_zoomCombo->setEditable(true);
     m_zoomCombo->setInsertPolicy(QComboBox::NoInsert);
@@ -210,6 +224,9 @@ void MainWindow::createSidePanel()
     m_searchWidget = new SearchWidget;
     m_sideStack->addWidget(m_searchWidget);
 
+    m_bookmarkWidget = new BookmarkWidget;
+    m_sideStack->addWidget(m_bookmarkWidget);
+
     sideLayout->addWidget(m_sideStack, 1);
     m_sideDock->setWidget(sideContainer);
     addDockWidget(Qt::LeftDockWidgetArea, m_sideDock);
@@ -221,20 +238,21 @@ void MainWindow::createSidePanel()
     auto *searchAction = m_sideToolBar->addAction(tr("Search"));
     searchAction->setCheckable(true);
 
-    connect(tocAction, &QAction::triggered, this, [this] {
-        m_sideStack->setCurrentIndex(0);
-        auto actions = m_sideToolBar->actions();
-        actions[0]->setChecked(true);
-        actions[1]->setChecked(false);
-    });
+    auto *bookmarkAction = m_sideToolBar->addAction(tr("Bookmarks"));
+    bookmarkAction->setCheckable(true);
 
-    connect(searchAction, &QAction::triggered, this, [this] {
-        m_sideStack->setCurrentIndex(1);
+    auto switchTo = [this](int index) {
+        m_sideStack->setCurrentIndex(index);
         auto actions = m_sideToolBar->actions();
-        actions[0]->setChecked(false);
-        actions[1]->setChecked(true);
-        m_searchWidget->focusSearch();
-    });
+        for (int i = 0; i < actions.size(); ++i)
+            actions[i]->setChecked(i == index);
+        if (index == 1)
+            m_searchWidget->focusSearch();
+    };
+
+    connect(tocAction, &QAction::triggered, this, [switchTo] { switchTo(0); });
+    connect(searchAction, &QAction::triggered, this, [switchTo] { switchTo(1); });
+    connect(bookmarkAction, &QAction::triggered, this, [switchTo] { switchTo(2); });
 }
 
 void MainWindow::setupConnections()
@@ -261,8 +279,10 @@ void MainWindow::setupConnections()
     connect(m_view, &PdfView::documentLoaded, this, [this](const QString &path) {
         setWindowTitle(tr("pdf-tools - %1").arg(QFileInfo(path).fileName()));
 
+        m_currentPath = path;
         m_tocWidget->setDocument(m_view->document());
         m_searchWidget->setDocument(m_view->document());
+        m_bookmarkWidget->loadBookmarks(path);
         m_sideDock->show();
 
         QSettings settings;
@@ -277,15 +297,20 @@ void MainWindow::setupConnections()
     });
 
     connect(m_view, &PdfView::documentClosed, this, [this] {
+        if (!m_currentPath.isEmpty())
+            m_bookmarkWidget->saveBookmarks(m_currentPath);
         setWindowTitle("pdf-tools");
         m_pageLabel->setText(tr("Page 1 / 1"));
+        m_currentPath.clear();
         m_tocWidget->setDocument(nullptr);
         m_searchWidget->setDocument(nullptr);
+        m_bookmarkWidget->clear();
         m_sideDock->hide();
     });
 
     connect(m_tocWidget, &TocWidget::pageRequested, m_view, &PdfView::goToPage);
     connect(m_searchWidget, &SearchWidget::pageRequested, m_view, &PdfView::goToPage);
+    connect(m_bookmarkWidget, &BookmarkWidget::pageRequested, m_view, &PdfView::goToPage);
 }
 
 void MainWindow::openFile()

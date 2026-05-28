@@ -26,6 +26,8 @@ add_executable(${PROJECT_NAME}
     src/TocWidget.h
     src/SearchWidget.cpp
     src/SearchWidget.h
+    src/BookmarkWidget.cpp
+    src/BookmarkWidget.h
     resources/resources.qrc
 )
 
