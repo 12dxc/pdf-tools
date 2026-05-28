@@ -15,7 +15,7 @@ SearchWidget::SearchWidget(QWidget *parent)
     layout->setContentsMargins(4, 4, 4, 4);
 
     m_input = new QLineEdit(this);
-    m_input->setPlaceholderText(tr("Search..."));
+    m_input->setPlaceholderText(tr("搜索..."));
     m_input->setClearButtonEnabled(true);
     layout->addWidget(m_input);
 
@@ -53,10 +53,10 @@ SearchWidget::SearchWidget(QWidget *parent)
     connect(m_model, &QPdfSearchModel::countChanged, this, [this]() {
         int n = m_model->count();
         if (n > 0) {
-            m_statusLabel->setText(tr("%1 result(s)").arg(n));
+            m_statusLabel->setText(tr("找到 %1 个结果").arg(n));
             m_statusLabel->setVisible(true);
         } else if (!m_input->text().trimmed().isEmpty()) {
-            m_statusLabel->setText(tr("No results"));
+            m_statusLabel->setText(tr("未找到结果"));
             m_statusLabel->setVisible(true);
         } else {
             m_statusLabel->setVisible(false);

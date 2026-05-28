@@ -14,7 +14,7 @@ BookmarkWidget::BookmarkWidget(QWidget *parent)
     m_list = new QListWidget(this);
     layout->addWidget(m_list, 1);
 
-    auto *delBtn = new QPushButton(tr("Delete"), this);
+    auto *delBtn = new QPushButton(tr("删除"), this);
     layout->addWidget(delBtn);
 
     connect(delBtn, &QPushButton::clicked, this, &BookmarkWidget::removeSelected);
@@ -36,7 +36,7 @@ void BookmarkWidget::addBookmark(const QString &title, int page)
     entry.title = title;
     entry.page = page;
     m_entries.append(entry);
-    m_list->addItem(QString("%1  (p.%2)").arg(title).arg(page + 1));
+    m_list->addItem(QString("%1  (第%2页)").arg(title).arg(page + 1));
 }
 
 void BookmarkWidget::loadBookmarks(const QString &fileKey)
@@ -53,7 +53,7 @@ void BookmarkWidget::loadBookmarks(const QString &fileKey)
         entry.title = settings.value("title").toString();
         entry.page = settings.value("page").toInt();
         m_entries.append(entry);
-        m_list->addItem(QString("%1  (p.%2)").arg(entry.title).arg(entry.page + 1));
+        m_list->addItem(QString("%1  (第%2页)").arg(entry.title).arg(entry.page + 1));
     }
     settings.endArray();
 }

@@ -84,9 +84,9 @@ void MainWindow::dropEvent(QDropEvent *event)
 void MainWindow::createMenuBar()
 {
     // File menu
-    auto *fileMenu = menuBar()->addMenu(tr("&File"));
+    auto *fileMenu = menuBar()->addMenu(tr("文件(&F)"));
 
-    auto *openAction = fileMenu->addAction(tr("&Open..."));
+    auto *openAction = fileMenu->addAction(tr("打开(&O)..."));
     openAction->setShortcut(QKeySequence::Open);
     openAction->setIcon(style()->standardIcon(QStyle::SP_DialogOpenButton));
     connect(openAction, &QAction::triggered, this, &MainWindow::openFile);
@@ -100,37 +100,37 @@ void MainWindow::createMenuBar()
 
     fileMenu->addSeparator();
 
-    auto *printAction = fileMenu->addAction(tr("&Print..."));
+    auto *printAction = fileMenu->addAction(tr("打印(&P)..."));
     printAction->setShortcut(QKeySequence::Print);
     printAction->setIcon(style()->standardIcon(QStyle::SP_FileIcon));
     connect(printAction, &QAction::triggered, this, &MainWindow::printDocument);
 
     fileMenu->addSeparator();
 
-    auto *closeAction = fileMenu->addAction(tr("&Close"));
+    auto *closeAction = fileMenu->addAction(tr("关闭(&C)"));
     closeAction->setShortcut(QKeySequence::Close);
     connect(closeAction, &QAction::triggered, m_view, &PdfView::closeDocument);
 
-    auto *exitAction = fileMenu->addAction(tr("E&xit"));
+    auto *exitAction = fileMenu->addAction(tr("退出(&X)"));
     exitAction->setShortcut(QKeySequence::Quit);
     connect(exitAction, &QAction::triggered, this, &QWidget::close);
 
     // View menu
-    auto *viewMenu = menuBar()->addMenu(tr("&View"));
+    auto *viewMenu = menuBar()->addMenu(tr("视图(&V)"));
 
-    auto *gotoAction = viewMenu->addAction(tr("&Go to Page..."));
+    auto *gotoAction = viewMenu->addAction(tr("跳转页面(&G)..."));
     gotoAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_G));
     connect(gotoAction, &QAction::triggered, this, &MainWindow::goToPage);
 
     viewMenu->addSeparator();
 
-    auto *zoomInAction = viewMenu->addAction(tr("Zoom &In"));
+    auto *zoomInAction = viewMenu->addAction(tr("放大(&I)"));
     zoomInAction->setShortcut(QKeySequence::ZoomIn);
     connect(zoomInAction, &QAction::triggered, this, [this] {
         m_view->setZoom(m_view->zoomFactor() + 15.0);
     });
 
-    auto *zoomOutAction = viewMenu->addAction(tr("Zoom &Out"));
+    auto *zoomOutAction = viewMenu->addAction(tr("缩小(&O)"));
     zoomOutAction->setShortcut(QKeySequence::ZoomOut);
     connect(zoomOutAction, &QAction::triggered, this, [this] {
         m_view->setZoom(m_view->zoomFactor() - 15.0);
@@ -138,22 +138,22 @@ void MainWindow::createMenuBar()
 
     viewMenu->addSeparator();
 
-    auto *fitWidthAction = viewMenu->addAction(tr("Fit &Width"));
+    auto *fitWidthAction = viewMenu->addAction(tr("适合宽度(&W)"));
     connect(fitWidthAction, &QAction::triggered, m_view, &PdfView::fitToWidth);
 
-    auto *fitPageAction = viewMenu->addAction(tr("Fit &Page"));
+    auto *fitPageAction = viewMenu->addAction(tr("适合页面(&P)"));
     connect(fitPageAction, &QAction::triggered, m_view, &PdfView::fitToPage);
 
     viewMenu->addSeparator();
 
-    auto *selectModeAction = viewMenu->addAction(tr("Text &Select"));
+    auto *selectModeAction = viewMenu->addAction(tr("文本选择(&S)"));
     selectModeAction->setCheckable(true);
     selectModeAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_S));
     connect(selectModeAction, &QAction::toggled, m_view, &PdfView::setSelectMode);
 
     viewMenu->addSeparator();
 
-    auto *searchAction = viewMenu->addAction(tr("&Search..."));
+    auto *searchAction = viewMenu->addAction(tr("搜索(&S)..."));
     searchAction->setShortcut(QKeySequence::Find);
     connect(searchAction, &QAction::triggered, this, [this] {
         m_sideDock->show();
@@ -165,47 +165,47 @@ void MainWindow::createMenuBar()
 
     viewMenu->addSeparator();
 
-    auto *toggleTocAction = viewMenu->addAction(tr("Toggle &Side Panel"));
+    auto *toggleTocAction = viewMenu->addAction(tr("切换侧边栏(&T)"));
     toggleTocAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_T));
     connect(toggleTocAction, &QAction::triggered, this, [this] {
         m_sideDock->setVisible(!m_sideDock->isVisible());
     });
 
-    auto *darkThemeAction = viewMenu->addAction(tr("&Dark Theme"));
+    auto *darkThemeAction = viewMenu->addAction(tr("深色主题(&D)"));
     darkThemeAction->setCheckable(true);
     darkThemeAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_D));
     connect(darkThemeAction, &QAction::triggered, this, &MainWindow::toggleDarkTheme);
 
     // Help menu
-    auto *helpMenu = menuBar()->addMenu(tr("&Help"));
-    auto *aboutAction = helpMenu->addAction(tr("&About pdf-tools"));
+    auto *helpMenu = menuBar()->addMenu(tr("帮助(&H)"));
+    auto *aboutAction = helpMenu->addAction(tr("关于 pdf-tools(&A)..."));
     connect(aboutAction, &QAction::triggered, this, &MainWindow::about);
 }
 
 void MainWindow::createToolBar()
 {
-    auto *toolbar = addToolBar(tr("Main"));
+    auto *toolbar = addToolBar(tr("主工具栏"));
     toolbar->setIconSize(QSize(20, 20));
     toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
     auto *openAction = toolbar->addAction(
-        style()->standardIcon(QStyle::SP_DialogOpenButton), tr("Open"));
+        style()->standardIcon(QStyle::SP_DialogOpenButton), tr("打开"));
     connect(openAction, &QAction::triggered, this, &MainWindow::openFile);
 
     toolbar->addSeparator();
 
     auto *prevAction = toolbar->addAction(
-        style()->standardIcon(QStyle::SP_ArrowLeft), tr("Prev"));
+        style()->standardIcon(QStyle::SP_ArrowLeft), tr("上一页"));
     connect(prevAction, &QAction::triggered, m_view, &PdfView::goPrevPage);
 
     auto *nextAction = toolbar->addAction(
-        style()->standardIcon(QStyle::SP_ArrowRight), tr("Next"));
+        style()->standardIcon(QStyle::SP_ArrowRight), tr("下一页"));
     connect(nextAction, &QAction::triggered, m_view, &PdfView::goNextPage);
 
     toolbar->addSeparator();
 
     auto *selectAction = toolbar->addAction(
-        style()->standardIcon(QStyle::SP_FileDialogContentsView), tr("Select"));
+        style()->standardIcon(QStyle::SP_FileDialogContentsView), tr("选择"));
     selectAction->setCheckable(true);
     selectAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_S));
     connect(selectAction, &QAction::toggled, m_view, &PdfView::setSelectMode);
@@ -213,10 +213,10 @@ void MainWindow::createToolBar()
     toolbar->addSeparator();
 
     auto *bookmarkAction = toolbar->addAction(
-        style()->standardIcon(QStyle::SP_FileDialogDetailedView), tr("Bookmark"));
+        style()->standardIcon(QStyle::SP_FileDialogDetailedView), tr("书签"));
     bookmarkAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_B));
     connect(bookmarkAction, &QAction::triggered, this, [this] {
-        QString title = tr("Page %1").arg(m_view->currentPage() + 1);
+        QString title = tr("第 %1 页").arg(m_view->currentPage() + 1);
         m_bookmarkWidget->addBookmark(title, m_view->currentPage());
         m_bookmarkWidget->saveBookmarks(m_currentPath);
     });
@@ -237,7 +237,7 @@ void MainWindow::createToolBar()
 
 void MainWindow::createStatusBar()
 {
-    m_pageLabel = new QLabel(tr("Page 1 / 1"), this);
+    m_pageLabel = new QLabel(tr("第 1 页 / 共 1 页"), this);
     statusBar()->addPermanentWidget(m_pageLabel);
 
     m_zoomLabel = new QLabel(tr("100%"), this);
@@ -252,7 +252,7 @@ void MainWindow::createCentralWidget()
 
 void MainWindow::createSidePanel()
 {
-    m_sideDock = new QDockWidget(tr("Navigation"), this);
+    m_sideDock = new QDockWidget(tr("导航"), this);
     m_sideDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetClosable);
     m_sideDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 
@@ -281,14 +281,14 @@ void MainWindow::createSidePanel()
     m_sideDock->setWidget(sideContainer);
     addDockWidget(Qt::LeftDockWidgetArea, m_sideDock);
 
-    auto *tocAction = m_sideToolBar->addAction(tr("TOC"));
+    auto *tocAction = m_sideToolBar->addAction(tr("目录"));
     tocAction->setCheckable(true);
     tocAction->setChecked(true);
 
-    auto *searchAction = m_sideToolBar->addAction(tr("Search"));
+    auto *searchAction = m_sideToolBar->addAction(tr("搜索"));
     searchAction->setCheckable(true);
 
-    auto *bookmarkAction = m_sideToolBar->addAction(tr("Bookmarks"));
+    auto *bookmarkAction = m_sideToolBar->addAction(tr("书签"));
     bookmarkAction->setCheckable(true);
 
     auto switchTo = [this](int index) {
@@ -308,7 +308,7 @@ void MainWindow::createSidePanel()
 void MainWindow::setupConnections()
 {
     connect(m_view, &PdfView::pageChanged, this, [this](int page) {
-        m_pageLabel->setText(tr("Page %1 / %2").arg(page + 1).arg(m_view->pageCount()));
+        m_pageLabel->setText(tr("第 %1 页 / 共 %2 页").arg(page + 1).arg(m_view->pageCount()));
     });
 
     connect(m_view, &PdfView::zoomChanged, this, [this](double percent) {
@@ -350,7 +350,7 @@ void MainWindow::setupConnections()
         if (!m_currentPath.isEmpty())
             m_bookmarkWidget->saveBookmarks(m_currentPath);
         setWindowTitle("pdf-tools");
-        m_pageLabel->setText(tr("Page 1 / 1"));
+        m_pageLabel->setText(tr("第 1 页 / 共 1 页"));
         m_currentPath.clear();
         m_tocWidget->setDocument(nullptr);
         m_searchWidget->setDocument(nullptr);
@@ -363,14 +363,14 @@ void MainWindow::setupConnections()
     connect(m_bookmarkWidget, &BookmarkWidget::pageRequested, m_view, &PdfView::goToPage);
 
     connect(m_view, &PdfView::textSelected, this, [this](const QString &text) {
-        statusBar()->showMessage(tr("Selected: %1 chars").arg(text.size()), 3000);
+        statusBar()->showMessage(tr("已选择 %1 个字符").arg(text.size()), 3000);
     });
 }
 
 void MainWindow::openFile()
 {
     QString path = QFileDialog::getOpenFileName(
-        this, tr("Open PDF"), QString(), tr("PDF Files (*.pdf)"));
+        this, tr("打开 PDF"), QString(), tr("PDF 文件 (*.pdf)"));
     if (!path.isEmpty())
         m_view->loadFile(path);
 }
@@ -401,17 +401,17 @@ void MainWindow::updateRecentFiles()
 void MainWindow::printDocument()
 {
     if (m_view->pageCount() == 0) {
-        QMessageBox::information(this, tr("Print"), tr("No document open."));
+        QMessageBox::information(this, tr("打印"), tr("没有打开的文档。"));
         return;
     }
 
     QPrinter printer(QPrinter::HighResolution);
     QPrintDialog dialog(&printer, this);
-    dialog.setWindowTitle(tr("Print Document"));
+    dialog.setWindowTitle(tr("打印文档"));
     if (dialog.exec() != QDialog::Accepted)
         return;
 
-    statusBar()->showMessage(tr("Printing..."));
+    statusBar()->showMessage(tr("正在打印..."));
 
     QPainter painter;
     if (!painter.begin(&printer)) {
@@ -436,22 +436,22 @@ void MainWindow::printDocument()
         QRectF sourceRect(0, 0, image.width(), image.height());
         painter.drawImage(targetRect, image, sourceRect);
 
-        statusBar()->showMessage(tr("Printing page %1 / %2").arg(i + 1).arg(totalPages));
+        statusBar()->showMessage(tr("正在打印第 %1 页 / 共 %2 页").arg(i + 1).arg(totalPages));
     }
 
     painter.end();
-    statusBar()->showMessage(tr("Print complete."), 3000);
+    statusBar()->showMessage(tr("打印完成。"), 3000);
 }
 
 void MainWindow::goToPage()
 {
     if (m_view->pageCount() == 0) {
-        QMessageBox::information(this, tr("Go to Page"), tr("No document open."));
+        QMessageBox::information(this, tr("跳转页面"), tr("没有打开的文档。"));
         return;
     }
     bool ok = false;
-    int page = QInputDialog::getInt(this, tr("Go to Page"),
-        tr("Page number (1 - %1):").arg(m_view->pageCount()),
+    int page = QInputDialog::getInt(this, tr("跳转页面"),
+        tr("页码 (1 - %1)：").arg(m_view->pageCount()),
         m_view->currentPage() + 1, 1, m_view->pageCount(), 1, &ok);
     if (ok)
         m_view->goToPage(page - 1);
@@ -487,10 +487,10 @@ void MainWindow::toggleDarkTheme()
 
 void MainWindow::about()
 {
-    QMessageBox::about(this, tr("About pdf-tools"),
+    QMessageBox::about(this, tr("关于 pdf-tools"),
         tr("<b>pdf-tools</b> v%1<br><br>"
-           "A PDF reader built with Qt %2 and C++17.<br><br>"
-           "Licensed under GPL v3.")
+           "基于 Qt %2 和 C++17 的 PDF 阅读器。<br><br>"
+           "使用 GPL v3 许可证发布。")
         .arg(QApplication::applicationVersion(),
              qVersion()));
 }
