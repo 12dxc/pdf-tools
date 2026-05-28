@@ -37,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     setWindowTitle("pdf-tools");
     resize(1024, 720);
+    setAcceptDrops(true);
 
     createMenuBar();
     createToolBar();

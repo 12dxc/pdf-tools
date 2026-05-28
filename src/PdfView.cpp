@@ -8,6 +8,9 @@
 #include <QWheelEvent>
 #include <QKeyEvent>
 #include <QMouseEvent>
+#include <QDragEnterEvent>
+#include <QDropEvent>
+#include <QMimeData>
 #include <QClipboard>
 #include <QApplication>
 #include <QRubberBand>
@@ -231,5 +234,29 @@ void PdfView::keyPressEvent(QKeyEvent *event)
         break;
     default:
         QGraphicsView::keyPressEvent(event);
+    }
+}
+
+void PdfView::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasUrls()) {
+        for (const auto &url : event->mimeData()->urls()) {
+            if (url.toLocalFile().endsWith(".pdf", Qt::CaseInsensitive)) {
+                event->acceptProposedAction();
+                return;
+            }
+        }
+    }
+    event->ignore();
+}
+
+void PdfView::dropEvent(QDropEvent *event)
+{
+    for (const auto &url : event->mimeData()->urls()) {
+        QString path = url.toLocalFile();
+        if (path.endsWith(".pdf", Qt::CaseInsensitive)) {
+            loadFile(path);
+            break;
+        }
     }
 }
