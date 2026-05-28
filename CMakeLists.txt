@@ -18,6 +18,8 @@ find_package(Qt6 REQUIRED COMPONENTS
 
 add_executable(${PROJECT_NAME}
     src/main.cpp
+    src/MainWindow.cpp
+    src/PdfView.cpp
     resources/resources.qrc
 )
 

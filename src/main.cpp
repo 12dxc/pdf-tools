@@ -1,6 +1,6 @@
 #include <QApplication>
-#include <QMainWindow>
-#include <QLabel>
+#include <QSettings>
+#include "MainWindow.h"
 
 int main(int argc, char *argv[])
 {
@@ -9,13 +9,15 @@ int main(int argc, char *argv[])
     app.setOrganizationName("pdf-tools");
     app.setApplicationVersion("1.0.0");
 
-    QMainWindow window;
-    window.setWindowTitle("pdf-tools");
-    window.resize(1024, 720);
+    QSettings::setDefaultFormat(QSettings::IniFormat);
 
-    auto *central = new QLabel("pdf-tools", &window);
-    central->setAlignment(Qt::AlignCenter);
-    window.setCentralWidget(central);
+    MainWindow window;
+
+    QSettings settings;
+    if (settings.contains("window/geometry"))
+        window.restoreGeometry(settings.value("window/geometry").toByteArray());
+    if (settings.contains("window/state"))
+        window.restoreState(settings.value("window/state").toByteArray());
 
     window.show();
     return app.exec();
