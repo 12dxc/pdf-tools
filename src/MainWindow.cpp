@@ -124,6 +124,13 @@ void MainWindow::createMenuBar()
 
     viewMenu->addSeparator();
 
+    auto *selectModeAction = viewMenu->addAction(tr("Text &Select"));
+    selectModeAction->setCheckable(true);
+    selectModeAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_S));
+    connect(selectModeAction, &QAction::toggled, m_view, &PdfView::setSelectMode);
+
+    viewMenu->addSeparator();
+
     auto *searchAction = viewMenu->addAction(tr("&Search..."));
     searchAction->setShortcut(QKeySequence::Find);
     connect(searchAction, &QAction::triggered, this, [this] {
@@ -159,6 +166,14 @@ void MainWindow::createToolBar()
     auto *nextAction = toolbar->addAction(
         style()->standardIcon(QStyle::SP_ArrowRight), tr("Next"));
     connect(nextAction, &QAction::triggered, m_view, &PdfView::goNextPage);
+
+    toolbar->addSeparator();
+
+    auto *selectAction = toolbar->addAction(
+        style()->standardIcon(QStyle::SP_FileDialogContentsView), tr("Select"));
+    selectAction->setCheckable(true);
+    selectAction->setShortcut(QKeySequence(Qt::ALT | Qt::Key_S));
+    connect(selectAction, &QAction::toggled, m_view, &PdfView::setSelectMode);
 
     toolbar->addSeparator();
 
@@ -311,6 +326,10 @@ void MainWindow::setupConnections()
     connect(m_tocWidget, &TocWidget::pageRequested, m_view, &PdfView::goToPage);
     connect(m_searchWidget, &SearchWidget::pageRequested, m_view, &PdfView::goToPage);
     connect(m_bookmarkWidget, &BookmarkWidget::pageRequested, m_view, &PdfView::goToPage);
+
+    connect(m_view, &PdfView::textSelected, this, [this](const QString &text) {
+        statusBar()->showMessage(tr("Selected: %1 chars").arg(text.size()), 3000);
+    });
 }
 
 void MainWindow::openFile()

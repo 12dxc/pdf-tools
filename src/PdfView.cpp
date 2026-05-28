@@ -7,6 +7,12 @@
 #include <QGraphicsPixmapItem>
 #include <QWheelEvent>
 #include <QKeyEvent>
+#include <QMouseEvent>
+#include <QClipboard>
+#include <QApplication>
+#include <QRubberBand>
+#include <QPainter>
+#include <QPen>
 
 PdfView::PdfView(QWidget *parent)
     : QGraphicsView(parent)
@@ -120,6 +126,70 @@ void PdfView::renderCurrentPage()
     m_renderer->requestPage(m_page, pageSize);
 }
 
+void PdfView::setSelectMode(bool on)
+{
+    m_selectMode = on;
+    if (on) {
+        setDragMode(QGraphicsView::NoDrag);
+        setCursor(Qt::IBeamCursor);
+    } else {
+        setDragMode(QGraphicsView::ScrollHandDrag);
+        setCursor(Qt::ArrowCursor);
+    }
+    emit selectModeChanged(on);
+}
+
+void PdfView::copySelection()
+{
+    if (!m_selectedText.isEmpty()) {
+        QApplication::clipboard()->setText(m_selectedText);
+    }
+}
+
+void PdfView::mousePressEvent(QMouseEvent *event)
+{
+    if (m_selectMode && event->button() == Qt::LeftButton) {
+        m_selecting = true;
+        m_selectStart = mapToScene(event->pos());
+        m_selectEnd = m_selectStart;
+        return;
+    }
+    QGraphicsView::mousePressEvent(event);
+}
+
+void PdfView::mouseMoveEvent(QMouseEvent *event)
+{
+    if (m_selecting) {
+        m_selectEnd = mapToScene(event->pos());
+        m_scene->update();
+        return;
+    }
+    QGraphicsView::mouseMoveEvent(event);
+}
+
+void PdfView::mouseReleaseEvent(QMouseEvent *event)
+{
+    if (m_selecting && event->button() == Qt::LeftButton) {
+        m_selecting = false;
+        m_selectEnd = mapToScene(event->pos());
+
+        QPointF topLeft(qMin(m_selectStart.x(), m_selectEnd.x()),
+                        qMin(m_selectStart.y(), m_selectEnd.y()));
+        QPointF bottomRight(qMax(m_selectStart.x(), m_selectEnd.x()),
+                            qMax(m_selectStart.y(), m_selectEnd.y()));
+
+        QPdfSelection sel = m_document->getSelection(
+            m_page, topLeft, bottomRight);
+        m_selectedText = sel.text();
+
+        if (!m_selectedText.isEmpty())
+            emit textSelected(m_selectedText);
+
+        return;
+    }
+    QGraphicsView::mouseReleaseEvent(event);
+}
+
 void PdfView::wheelEvent(QWheelEvent *event)
 {
     if (event->modifiers() & Qt::ControlModifier) {
@@ -152,6 +222,12 @@ void PdfView::keyPressEvent(QKeyEvent *event)
         break;
     case Qt::Key_End:
         goToPage(m_pageCount - 1);
+        break;
+    case Qt::Key_C:
+        if (event->modifiers() & Qt::ControlModifier)
+            copySelection();
+        else
+            QGraphicsView::keyPressEvent(event);
         break;
     default:
         QGraphicsView::keyPressEvent(event);

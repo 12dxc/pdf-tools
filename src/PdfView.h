@@ -22,6 +22,8 @@ public:
     int currentPage() const { return m_page; }
     int pageCount() const { return m_pageCount; }
     double zoomFactor() const { return m_zoom; }
+    bool isSelectMode() const { return m_selectMode; }
+    QString selectedText() const { return m_selectedText; }
 
 public slots:
     void goNextPage();
@@ -30,16 +32,23 @@ public slots:
     void setZoom(double percent);
     void fitToWidth();
     void fitToPage();
+    void setSelectMode(bool on);
+    void copySelection();
 
 signals:
     void pageChanged(int page);
     void zoomChanged(double percent);
     void documentLoaded(const QString &path);
     void documentClosed();
+    void selectModeChanged(bool on);
+    void textSelected(const QString &text);
 
 protected:
     void wheelEvent(QWheelEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
 
 private:
     void renderCurrentPage();
@@ -52,6 +61,12 @@ private:
     int m_page = 0;
     int m_pageCount = 0;
     double m_zoom = 100.0;
+
+    bool m_selectMode = false;
+    bool m_selecting = false;
+    QPointF m_selectStart;
+    QPointF m_selectEnd;
+    QString m_selectedText;
 };
 
 #endif // PDFVIEW_H
